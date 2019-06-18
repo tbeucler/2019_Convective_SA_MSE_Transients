@@ -1,4 +1,6 @@
 %% GRL_Figure02.m
+% tbeucler - 6/17/2019
+% Edited for Github repository of GRL submission
 % tbeucler - 3/17/2019
 % Spectra of MSE for all products
 
@@ -64,7 +66,7 @@ for iT = 1:N2a, tmin = tmin_2a(iT); tmax = tmax_2a(iT); % Time period
         [~,i1] = min(abs(t-tmin)); [~,i2] = min(abs(t-tmax)); TT = i1:i2;
         % Wavelength abscissa
         X = log10(DAT.lam_interp/1e3); Xmin = min(X(:));
-        % Plot normalized MSE spectrum
+        % Plot MSE spectrum normalized to variance units
         Y = log10(nanmean(DAT.Agg.mse(:,:,TT)/2.,3).*...
             nanmean(DAT.VAR.mse(:,TT)/Lv^2,2)./...
             (DAT.lam_interp'.*trapz(1./DAT.lam_interp,...
@@ -101,7 +103,7 @@ for isim = 1:N2b, load(['MAT_DATA',filesep,sim2b{isim}]);
         nanmean((Lv^(-2))*DAT.VAR.mse(:,TT),2)./...
         (DAT.lam_interp'.*trapz(1./...
         DAT.lam_interp,nanmean(DAT.Agg.mse(:,:,TT)/2,3)))); hold on;
-    % Plot
+    % Plot power MSE spectrum normalized to variance units
     P2b(isim) = plot(X,Y,'Linewidth',lw,'color',COL2b(isim,:),...
         'Linestyle',ls2b{isim}); hold on; grid on;
     set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex');
