@@ -4,148 +4,124 @@
 
 close all; fclose('all'); clearvars;
 
-fz = 16; lw = 3; % Fontsize and Linewidth
-COL = [[127 48 143];[218 89 33];[237 177 33]]/255; % MSE power spectra at different times
-cmap = [0 0 0; 117 112 179; 217 150 0; 231 41 138; 27 158 119]/255; % LW,SW,SEF,ADV colors
+%% 1. Parameters
 
-av6 = 24;
-spd = 24*3600;
-Lv = 2.5e6;
+% Figure's appearance
+fz = 16; % Fontsize
+lw = 3; % Linewidth
 
+% Subplot 2a parameters
+% Simulations
+LEG2a = {'0-5d CTRL','0-5d UNI-RAD','5-10d CTRL','5-10d UNI-RAD',...
+    '50-80d CTRL','50-80d UNI-RAD'};
+sim2a = {'LC_UNI_RAD','LC_CTRL'}; Nsim = length(sim2a);
+TIT2a = ['$\mathrm{\left(a\right)\ \lambda^{-1}\times MSE\ Power',...
+    '\ Spectrum\ for\ LC\ experiments}$'];
+YLAB2a = '$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$';
+% Time periods to average MSE power spectrum for subplot 2a
+COL2a = [[127 48 143];[218 89 33];[237 177 33]]/255; % Colors for different times
+ls2a = {':','-'}; % Linestyles for different time periods
+tmin_2a = [0 5 50];
+tmax_2a = [5 10 80];
+N2a = length(tmin_2a);
+
+% Subplot 2b parameters
+% Parameters that change for each dataset
+COL2b = [[237 177 33];[237 177 33];[237 177 33];...
+    [0 127.5 0];[0 127.5 0];[0 127.5 0];...
+    [127.5 127.5 255];[0 0 0]]/255;
+LEG2b = {'LC UNI-RAD','LC UNI-SEF','LC CTRL','NG UNI-RAD',...
+    'NG UNI-SEF','NG CTRL','CERES','ERA'};
+ls2b = {':','--','-',':','--','-','-','-'}; N2b = length(ls2b);
+sim2b = {'LC_UNI_RAD_1day_av','LC_UNI_SEF_1day_av','LC_CTRL_1day_av',...
+    'NG_UNI_RAD','NG_UNI_SEF','NG_CTRL','CERES','ERA5_1day_av'};
+TIT2b = ['$\mathrm{\left(b\right)\ \lambda^{-1}\times MSE',...
+    '\ Power\ Spectrum\ for\ all\ datasets}$'];
+tmin_2b = [50 50 50 50 50 50 0 0];
+tmax_2b = [80 80 80 80 80 80 1e4 1e4];
+XLAB2b = '$\lambda\ \left[\mathrm{km}\right]$';
+YLAB2b = '$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$';
+% Position adjustments
+leg = 0.225; % Legend margin
+marl = 0.1; % Left margin
+marr = 2.5e-2; % Right margin
+marv = 5e-2; % Vertical margin
+
+% Physical constants
+Lv = 2.5e6; % Latent heat of vaporization of water
+spd = 24*3600; % Number of seconds per day
+
+%% 2. Figure
 figure
 set(gcf,'Position',[50 50 1000 700]);
 
-%% Subplot (a)
+%% 2a. Subplot 2a
 S(1) = subplot(2,1,1);
-for iT = 1:3
-    
-    if iT==1, t1 = 0; t2 = 5;
-    elseif iT==2, t1 = 5; t2 = 10;
-    elseif iT==3, t1 = 50; t2 = 80;
-    end
-    
-    for isim = [1 3]
-        if isim<3, load(['MAT_DATA/UCP2_2212109_SST',num2str(isim),'_rad','cam'],'DAT');
-        elseif isim==3, load(['MAT_DATA/UCP2_2212109_SST',num2str(300),'_rad','cam'],'DAT');
-        end
-        if isim==1, ls = ':';
-        elseif isim==2, ls = '--';
-        elseif isim==3, ls = '-';
-        end
+for iT = 1:N2a, tmin = tmin_2a(iT); tmax = tmax_2a(iT); % Time period
+    for isim = 1:Nsim, load(['MAT_DATA',filesep,sim2a{isim}]);
+        % Time coordinate
         t = DAT.t-DAT.t(1);
-        [~,i1] = min(abs(t-t1)); [~,i2] = min(abs(t-t2)); TT = i1:i2;
-        
+        [~,i1] = min(abs(t-tmin)); [~,i2] = min(abs(t-tmax)); TT = i1:i2;
+        % Wavelength abscissa
         X = log10(DAT.lam_interp/1e3); Xmin = min(X(:));
+        % Plot normalized MSE spectrum
         Y = log10(nanmean(DAT.Agg.mse(:,:,TT)/2.,3).*...
-            nanmean(DAT.VAR(:,TT)/Lv^2,2)./...
-            (DAT.lam_interp'.*trapz(1./DAT.lam_interp,nanmean(DAT.Agg.mse(:,:,TT)/2.,3))));
-        P0(isim,iT) = plot(X,Y,'Linewidth',lw,'color',COL(iT,:),'Linestyle',ls); hold on; grid on;
+            nanmean(DAT.VAR.mse(:,TT)/Lv^2,2)./...
+            (DAT.lam_interp'.*trapz(1./DAT.lam_interp,...
+            nanmean(DAT.Agg.mse(:,:,TT)/2.,3))));
+        P2a(isim,iT) = plot(X,Y,'Linewidth',lw,'color',COL2a(iT,:),...
+            'Linestyle',ls2a{isim}); hold on; grid on;
         set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex');
     end
-    
-    ylabel('$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$','Fontsize',fz,'Interpreter','Latex');
+    % Subplot's label and appearance
     set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex',...
         'Xdir','reverse','XTickLabel','');
     
-end; title('$\mathrm{\left(a\right)\ \lambda^{-1}\times MSE\ Power\ Spectrum\ for\ LC\ experiments}$',...
-    'Fontsize',fz,'Interpreter','Latex');
-LEG1 = legend([P0(3,1) P0(1,1) P0(3,2) P0(1,2) P0(3,3) P0(1,3)],...
-    {'0-5d CTRL','0-5d UNI-RAD','5-10d CTRL','5-10d UNI-RAD','50-80d CTRL','50-80d UNI-RAD'},...
-    'Location','eastoutside','Interpreter','Latex','Fontsize',fz);
+end; ylabel(YLAB2a,'Fontsize',fz,'Interpreter','Latex');
+title(TIT2a,'Fontsize',fz,'Interpreter','Latex');
+LEGa = legend([P2a(2,1) P2a(1,1) P2a(2,2) P2a(1,2) P2a(2,3) P2a(1,3)],...
+    LEG2a,'Location','eastoutside','Interpreter','Latex','Fontsize',fz);
 
+% Use logarithmic scale for y labels
 G = gca; YTIK = G.YTickLabel;
 for iy = 1:numel(YTIK), YTIK{iy}=strcat('$10^{',YTIK{iy},'}$'); end
 set(gca,'YTickLabel',YTIK);
 
-%% Subplot (b)
+%% 2b. Subplot 2b
 S(2) = subplot(2,1,2);
-% Plot Long-Channel
-t1 = 50; t2 = 80;
-for isim = 1:3
-    if av6>0, strav6 = ['_av6',num2str(av6)]; else, strav6 = ''; end
-    if isim<3, load(['MAT_DATA/UCP2_2212109_SST',num2str(isim),'_rad','cam',strav6],'DAT');
-    elseif isim==3, load(['MAT_DATA/UCP2_2212109_SST',num2str(300),'_rad','cam',strav6],'DAT');
-    end
-    if isim==1, ls = ':';
-    elseif isim==2, ls = '--';
-    elseif isim==3, ls = '-';
-    end
+for isim = 1:N2b, load(['MAT_DATA',filesep,sim2b{isim}]);
+    tmin = tmin_2b(isim); tmax = tmax_2b(isim); % Time period
+    % Time coordinate
     t = DAT.t-DAT.t(1);
-    [~,i1] = min(abs(t-t1)); [~,i2] = min(abs(t-t2)); TT = i1:i2;
-    
-    X = log10(DAT.lam_interp/1e3);
-    Y = log10(nanmean(DAT.Agg.mse(:,:,TT)/2.,3).*...
-        nanmean(DAT.VAR(:,TT)/Lv^2,2)./...
-        (DAT.lam_interp'.*trapz(1./DAT.lam_interp,nanmean(DAT.Agg.mse(:,:,TT)/2.,3))));
-    P1(isim) = plot(X,Y,'Linewidth',lw,'color',COL(iT,:),'Linestyle',ls); hold on; grid on;
+    [~,i1] = min(abs(t-tmin)); [~,i2] = min(abs(t-tmax)); TT = i1:i2;
+    % Wavelength abscissa
+    X = log10(DAT.lam_interp/1e3); Xmax = max(X(:));
+    % Ordinate
+    Y = log10(nanmean(DAT.Agg.mse(:,:,TT)/2,3).*...
+        nanmean((Lv^(-2))*DAT.VAR.mse(:,TT),2)./...
+        (DAT.lam_interp'.*trapz(1./...
+        DAT.lam_interp,nanmean(DAT.Agg.mse(:,:,TT)/2,3)))); hold on;
+    % Plot
+    P2b(isim) = plot(X,Y,'Linewidth',lw,'color',COL2b(isim,:),...
+        'Linestyle',ls2b{isim}); hold on; grid on;
     set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex');
-end
-% Plot NG
-for isim = 1:3
-    if isim<3, load(['MAT_DATA/GRL_GetNG_',num2str(isim+1)],'DAT');
-    elseif isim==3, load('MAT_DATA/GRL_GetNG_1','DAT');
-    end
-    if isim==1, ls = ':';
-    elseif isim==2, ls = '--';
-    elseif isim==3, ls = '-';
-    end
-    t = DAT.t-DAT.t(1);
-    [~,i1] = min(abs(t-t1)); [~,i2] = min(abs(t-t2)); TT = i1:i2;
-    
-    X = log10(DAT.lam_interp/1e3);
-    Y = log10(nanmean(DAT.Agg.mse(:,:,TT)/2.,3).*...
-        nanmean(DAT.VAR.mse(:,TT)/Lv^2,2)./...
-        (DAT.lam_interp.*trapz(1./DAT.lam_interp,nanmean(DAT.Agg.mse(:,:,TT)/2.,3))));
-    P2(isim) = plot(X,Y,'Linewidth',lw,'color',[0 0.5 0],'Linestyle',ls); hold on; grid on;
-    set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex','Xdir','reverse');
-end
+end; set(gca,'Xdir','reverse','Fontsize',fz); xlim([Xmin Xmax]);
+% Axes and appearance of subplot 2b
+ylabel(YLAB2b,'Fontsize',fz,'Interpreter','Latex');
+xlabel(XLAB2b,'Fontsize',fz,'Interpreter','Latex');
+title(TIT2b,'Fontsize',fz,'Interpreter','Latex');
+LEGb = legend(P2b,LEG2b,'Location','Eastoutside',...
+    'Interpreter','Latex','Fontsize',fz);
 
+S(1).XLim = [Xmin Xmax]; % Set same x limits for subplot 2a
 
-
-% Plot CERES
-load('C:\Users\Tom\Desktop\Radiative_convective_instability\Cloud_rad_water_vap\MAT_DATA\GRL_GetCERES_year2010_2014.mat');
-X = log10(DAT.lam_interp/1e3); Xmax = max(X(:));
-Y = log10(nanmean(DAT.Pow.mse(:,:,TT),3).*...
-    nanmean((Lv^(-2))*DAT.VAR.mse(:,TT),2)./...
-    (DAT.lam_interp'.*trapz(1./DAT.lam_interp,nanmean(DAT.Pow.mse(:,:,TT),3)))); hold on;
-P3 = plot(X,Y,'Linewidth',lw,'color',[0.5 0.5 1],'Linestyle','-'); hold on;
-
-if av6==0
-% Plot ERA5 reanalysis
-load('MAT_DATA/UCP4_2252019_year2010_2014_month1_12.mat','DAT');
-X = log10(DAT.lam_interp/1e3); Xmax = max(X(:));
-Y = log10(nanmean(DAT.Pow.mse(:,:,TT),3).*...
-    nanmean((Lv^(-2))*DAT.VAR.mse(:,TT),2)./...
-    (DAT.lam_interp'.*trapz(1./DAT.lam_interp,nanmean(DAT.Pow.mse(:,:,TT),3)))); hold on;
-P4 = plot(X,Y,'Linewidth',lw,'color','k'); hold on;
-else
-    % Plot ERA5 reanalysis where fields are averaged over 1 day first
-load(['MAT_DATA\Test3252019_ERA_2010_2014_month1_12av6_',num2str(av6),'.mat'],'DAT');
-X = log10(DAT.lam_interp/1e3);
-Y = log10(nanmean(DAT.Pow.mse(:,:,TT),3).*...
-    nanmean((Lv^(-2))*DAT.VAR.mse(:,TT),2)./...
-    (DAT.lam_interp'.*trapz(1./DAT.lam_interp,nanmean(DAT.Pow.mse(:,:,TT),3)))); hold on;
-P4 = plot(X,Y,'Linewidth',lw,'color','k'); hold on;
-end
-
-xlim([Xmin Xmax]);
-set(gca,'Fontsize',fz,'TickLabelInterpreter','Latex');
-ylabel('$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$','Fontsize',fz,'Interpreter','Latex');
-xlabel('$\lambda\ \left[\mathrm{km}\right]$','Fontsize',fz,'Interpreter','Latex');
-title('$\mathrm{\left(b\right)\ \lambda^{-1}\times MSE\ Power\ Spectrum\ for\ all\ datasets}$','Fontsize',fz,'Interpreter','Latex');
-LEG2 = legend([P1(1) P1(2) P1(3) P2(1) P2(2) P2(3) P3 P4],...
-    {'LC UNI-RAD','LC UNI-SEF','LC CTRL','NG UNI-RAD','NG UNI-SEF','NG CTRL','CERES','ERA'},...
-    'Location','Eastoutside','Interpreter','Latex','Fontsize',fz);
-
-
-S(1).XLim = [Xmin Xmax];
-
-marl = 0.1; marr = 2.5e-2; marv = 5e-2; leg = 0.225;
+% Adjust position of subplots 2a,2b and corresponding legends
 S(1).Position = [marl 0.5+marv 1-marl-marr-leg 0.5-2*marv];
-LEG1.Position = [1-marr-leg 0.5+marv leg 0.5-2*marv];
+LEGa.Position = [1-marr-leg 0.5+marv leg 0.5-2*marv];
 S(2).Position = [marl 2*marv 1-marl-marr-leg 0.5-2*marv];
-LEG2.Position = [1-marr-leg 2*marv leg 0.5-2*marv];
+LEGb.Position = [1-marr-leg 2*marv leg 0.5-2*marv];
 
+% Logarithmic scales for both axes of subplot 2b
 G = gca; YTIK = G.YTickLabel; XTIK = G.XTickLabel;
 for ix = 1:numel(XTIK), XTIK{ix}=strcat('$10^{',XTIK{ix},'}$'); end
 for iy = 1:numel(YTIK), YTIK{iy}=strcat('$10^{',YTIK{iy},'}$'); end
