@@ -15,7 +15,7 @@ lw = 3; % Linewidth
 % Subplot 2a parameters
 % Simulations
 LEG2a = {'0-5d CTRL','0-5d UNI-RAD','5-10d CTRL','5-10d UNI-RAD',...
-    '50-80d CTRL','50-80d UNI-RAD'};
+    '40-80d CTRL','40-80d UNI-RAD'};
 sim2a = {'LC_UNI_RAD','LC_CTRL'}; Nsim = length(sim2a);
 TIT2a = ['$\mathrm{\left(a\right)\ \lambda^{-1}\times MSE\ Power',...
     '\ Spectrum\ for\ LC\ experiments}$'];
@@ -23,7 +23,7 @@ YLAB2a = '$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$';
 % Time periods to average MSE power spectrum for subplot 2a
 COL2a = [[127 48 143];[218 89 33];[237 177 33]]/255; % Colors for different times
 ls2a = {':','-'}; % Linestyles for different time periods
-tmin_2a = [0 5 50];
+tmin_2a = [0 5 40];
 tmax_2a = [5 10 80];
 N2a = length(tmin_2a);
 
@@ -39,7 +39,7 @@ sim2b = {'LC_UNI_RAD_1day_av','LC_UNI_SEF_1day_av','LC_CTRL_1day_av',...
     'NG_UNI_RAD','NG_UNI_SEF','NG_CTRL','CERES','ERA5_1day_av'};
 TIT2b = ['$\mathrm{\left(b\right)\ \lambda^{-1}\times MSE',...
     '\ Power\ Spectrum\ for\ all\ datasets}$'];
-tmin_2b = [50 50 50 50 50 50 0 0];
+tmin_2b = [40 40 40 50 50 50 0 0];
 tmax_2b = [80 80 80 80 80 80 1e4 1e4];
 XLAB2b = '$\lambda\ \left[\mathrm{km}\right]$';
 YLAB2b = '$\varphi_{H}/\lambda\ \left[\mathrm{kg^{2}\ m^{-4}}\right]$';

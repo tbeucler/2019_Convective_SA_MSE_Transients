@@ -17,7 +17,7 @@ XLAB = '$\lambda\ \left[\mathrm{km}\right]$'; % Units of x-axis
 YLAB = '$\left[1/\mathrm{day}\right]$'; % Units of y-axis
 
 % General appearance
-facNONAGG = 5; % Divide non aggregated simulations by constant factor
+facNONAGG = 5; % Divide non-aggregated simulations by constant factor
 fz = 14; % Fontsize
 lw = 3; % Linewidth
 marg = 0.08; % Left margin 
@@ -32,7 +32,7 @@ col = [[237 177 33];[237 177 33];[237 177 33];[0 127.5 0];[0 127.5 0];...
 ls = {':','--','-',':','--','-','-','-'}; Nsim = length(ls); % Linestyle
 sim = {'LC_UNI_RAD_1day_av','LC_UNI_SEF_1day_av','LC_CTRL_1day_av',...
     'NG_UNI_RAD','NG_UNI_SEF','NG_CTRL','CERES','ERA5_1day_av'};
-tmin = [50 50 50 30 30 30 0 0];
+tmin = [40 40 40 30 30 30 0 0];
 tmax = [80 80 80 1e4 1e4 1e4 1e4 1e4];
 
 % Axes bounds
@@ -71,6 +71,8 @@ for isim = 1:Nsim, load(['MAT_DATA',filesep,sim{isim}]); % Load data
         % Use normalized tendency of variance [1/day] for y-axis
         Y = nanmean(spd*NUM./(repmat(DAT.lam_interp',1,1,numel(TT)).*...
             repmat(Iphi(1,1,TT),N,1,1)),3); hold on;
+        % Divide the spectral rate by a factor facNONAGG if non-aggregated
+        if isim==1||isim==4, Y = Y/facNONAGG; end
         % Plot using custom color anda linestyle
         PLOT(isim) = plot(X,Y,'Linewidth',lw,'color',col(isim,:),...
             'Linestyle',ls{isim}); hold on;
